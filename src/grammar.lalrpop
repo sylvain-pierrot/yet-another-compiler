@@ -1,0 +1,47 @@
+use crate::tokens::{Token, LexicalError};
+use crate::ast;
+
+grammar;
+
+// ...
+
+extern {
+  type Location = usize;
+  type Error = LexicalError;
+
+  enum Token {
+    "int" => Token::Integer(<i64>),
+    "(" => Token::LParen,
+    ")" => Token::RParen,
+    "add" => Token::OperatorAdd,
+    "sub" => Token::OperatorSub,
+    "mul" => Token::OperatorMul,
+    "div" => Token::OperatorDiv,
+  }
+}
+
+pub Expression: Box<ast::Expression> = {
+    #[precedence(level="0")] // Highest precedence
+    Term,
+    #[precedence(level="1")] #[assoc(side="right")]
+    "mul" <lhs:Expression> <rhs:Expression> => {
+        Box::new(ast::Expression::Operation(ast::Operator::Mul, lhs, rhs))
+    },
+    "div" <lhs:Expression> <rhs:Expression> => {
+        Box::new(ast::Expression::Operation(ast::Operator::Div, lhs, rhs))
+    },
+    #[precedence(level="2")] #[assoc(side="right")]
+    "add" <lhs:Expression> <rhs:Expression> => {
+        Box::new(ast::Expression::Operation(ast::Operator::Add, lhs, rhs))
+    },
+    "sub" <lhs:Expression> <rhs:Expression> => {
+        Box::new(ast::Expression::Operation(ast::Operator::Sub, lhs, rhs))
+    },
+}
+
+pub Term: Box<ast::Expression> = {
+  <val:"int"> => {
+    Box::new(ast::Expression::Integer(val))
+  },
+  "(" <e:Expression> ")" => e
+}
