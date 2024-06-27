@@ -1,4 +1,4 @@
-use crate::{grammar, lexer::Lexer};
+use crate::{frontend::lexer::Lexer, grammar};
 use logos::Span;
 
 type Error = (String, Span);
